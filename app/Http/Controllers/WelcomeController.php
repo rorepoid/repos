@@ -8,6 +8,10 @@ class WelcomeController extends Controller
 {
     function showWelcomePage()
     {
-        return view('welcome');
+        $products = $this->marketService->getProducts();
+        dd($products);
+        return view('welcome')->with([
+            'products' => $products,
+            ]);
     }
 }

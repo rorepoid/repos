@@ -23,7 +23,7 @@ trait ConsumesExternalServices
             'headers' => $headers,
         ]);
 
-        $response = $response->getBody()->getContent();
+        $response = $response->getBody()->getContents();
         if(\method_exists($this, 'decodeResponse')){
             $response = $this->decodeResponse($response);
         }
