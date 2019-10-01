@@ -2,10 +2,12 @@
 
 namespace App\Services;
 use App\Traits\ConsumesExternalServices;
+use App\Traits\AuthorizesMarketRequests;
+use App\Traits\InteractWithMarketResponses;
 
 class Marketservice
 {
-    use ConsumesExternalServices;
+    use ConsumesExternalServices, AuthorizesMarketRequests, InteractWithMarketResponses;
 
     protected $baseUri;
 
@@ -14,27 +16,5 @@ class Marketservice
         $this->baseUri = config('services.market.base_uri');
     }
 
-    public function makeRequest()
-    {
-
-    }
     
-    public function resolveAuthorization(&$queryParams, &$formParams, &$headers)
-    {
-        
-    }
-
-    public function decodeResponse($response)
-    {
-        $decodeResponse = json_decode($response);
-        
-        return $decodeResponse->data ?? $decodeResponse;
-    }
-
-    public function checkIfErrorResponse($response)
-    {
-        if(isset($response->error)){
-            throw new \Exception("Somethig falied: {$response->error}");
-        }
-    }
 }
