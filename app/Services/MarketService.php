@@ -18,10 +18,30 @@ class Marketservice
 
     /**
      * Obtains the list of products from the API
+     * @return stdClass
      */
     public function getProducts()
     {
         return $this->makeRequest('GET', 'products');
+    }
+
+    /**
+     * Obtains the list of categories from the API
+     * @return stdClass
+     */
+    public function getCategories()
+    {
+        return $this->makeRequest('GET', 'categories');
+    }
+
+    /**
+     * Obtains a product from the API
+     * * @param int $id
+     * @return stdClass
+     */
+    public function getProduct($id)
+    {
+        return $this->makeRequest('GET', "products/{$id}");
     }
     
 }
