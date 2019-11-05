@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\User;
+use Illuminate\Http\Request;
+use App\Services\Marketservice;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Services\MarketAuthenticationService;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
@@ -39,10 +43,11 @@ class LoginController extends Controller
      *
      * @return void
      */
-    public function __construct(MarketAuthenticationService $marketAuthenticationService)
+    public function __construct(MarketAuthenticationService $marketAuthenticationService, Marketservice $marketservice)
     {
         $this->middleware('guest')->except('logout');
         $this->marketAuthenticationService = $marketAuthenticationService;
+        parent::__construct($marketservice);
     }
 
     /**
@@ -57,8 +62,63 @@ class LoginController extends Controller
         return view('auth.login')->with(['authorizationUrl' => $authorizationUrl]);
     }
 
-    public function authorization()
+    /**
+     * Recibe el resultado de la autorización de la API
+     * 
+     * @return \Illuminate\Http\Response
+     */
+    public function authorization(Request $request)
     {
-        
+        if ($request->has('code')) {
+            $tokenData = $this->marketAuthenticationService->getCodeToken($request->code);
+
+            $userData = $this->marketService->getUserInformation();
+
+            dd($userData);
+
+            $user = $this->registerOrUpdateUser($userData, $tokenData);
+
+            $this->loginUser($user);
+
+            return redirect()->intended('home');
+        }
+
+        return redirect()->route('login')->withErrors(['Cancelaste el proceso de Autorización']);
+    }
+
+    /**
+     * Crea o actualiza al usuario desde la API
+     * 
+     * @param stdClass $userData
+     * @param stdClass $tokenData
+     * @return App\User
+     */
+    public function registerOrUpdateUser($userData, $tokenData): User
+    {
+        return User::updateOrCreate(
+            [
+                'service_id' => $userData->identifier,
+            ],
+            [
+                'grant_type' => $tokenData->grant_type,
+                'access_token' => $tokenData->access_token,
+                'refresh_token' => $tokenData->refresh_token,
+                'token_expires_at' => $tokenData->token_expires_at,
+            ]
+        );
+    }
+
+    /**
+     * Autentica al usuario en el Cliente
+     * 
+     * @param App\User $user
+     * @param boolean $remember
+     * @return void
+     */
+    public function loginUser(User $user, $remember = true)
+    {
+        Auth::login($user, $remember);
+
+        session()->regenerate();
     }
 }

@@ -54,4 +54,13 @@ class Marketservice
         return $this->makeRequest('GET', "categories/{$id}/products");
     }
     
+    /**
+     * Obtains a user information from the API
+     * * @param int $id
+     * @return stdClass
+     */
+    public function getUserInformation()
+    {
+        return $this->makeRequest('GET', "users/me");
+    }
 }

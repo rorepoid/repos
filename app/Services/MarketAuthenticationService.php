@@ -42,6 +42,11 @@ class MarketAuthenticationService
         return $tokenData->accessToken;
     }
 
+    /**
+     * Genera la url para el botón de autorización
+     * 
+     * @return string
+     */
     public function resolveAuthorizationUrl()
     {
         $query = \http_build_query([
@@ -52,6 +57,45 @@ class MarketAuthenticationService
         ]);
 
         return "{$this->baseUri}/oauth/authorize?{$query}";
+    }
+
+    /**
+     * Obtiene un Access Token desde un código dado
+     * 
+     * @param string $token
+     * @return stdClass
+     */
+    public function getCodeToken($code)
+    {
+        $formParams = [
+            'grant_type' => 'authorization_code',
+            'client_id' => $this->clientId,
+            'client_secret' => $this->clientSecret,
+            'redirect_uri' => route('authorization'),
+            'code' => $code,
+        ];
+        $tokenData = $this->makeRequest('POST', 'oauth/token', [], $formParams);
+
+        $this->storeValidToken($tokenData, 'authorization_code');
+
+        return $tokenData->access_token;
+    }
+
+    public function getPasswordToken($username, $password)
+    {
+        $formParams = [
+            'grant_type' => 'password',
+            'client_id' => $this->passwordClientId,
+            'client_secret' => $this->passwordClientSecret,
+            'username' => $username,
+            'password' => $password,
+            'scope' => 'purchase-product manage-products manage-account read-general',
+        ];
+        $tokenData = $this->makeRequest('POST', 'oauth/token', [], $formParams);
+
+        $this->storeValidToken($tokenData, 'password');
+
+        return $tokenData->access_token;
     }
 
     /**
